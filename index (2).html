@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Aspect Ratio Adjuster</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        #canvasContainer {
+            display: inline-block;
+            position: relative;
+            background-color: black;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<h1>4:3 Image Padding Tool</h1>
+
+<input type="text" id="imageUrl" placeholder="Enter Image URL" />
+<br>
+<button onclick="processImage()">Process Image</button>
+<div id="canvasContainer"></div>
+<br>
+<a id="downloadLink" href="#" style="display:none;">
+    <button>Download Processed Image</button>
+</a>
+
+<script>
+    function processImage() {
+        const imageUrl = document.getElementById('imageUrl').value;
+        const canvasContainer = document.getElementById('canvasContainer');
+        const downloadLink = document.getElementById('downloadLink');
+
+        // Extract the file extension from the URL to detect the image format
+        const extension = imageUrl.split('.').pop().toLowerCase();
+        const validFormats = ['png', 'jpeg', 'jpg', 'webp', 'gif', 'bmp'];
+        const imageFormat = validFormats.includes(extension) ? extension : 'png'; // Default to PNG if format is unknown
+
+        // Create an image element
+        const img = new Image();
+        img.crossOrigin = 'anonymous'; // To handle CORS issues if the image is from another domain
+        img.src = imageUrl;
+
+        img.onload = function() {
+            // Clear previous content
+            canvasContainer.innerHTML = '';
+            downloadLink.style.display = 'none';
+
+            const originalWidth = img.width;
+            const originalHeight = img.height;
+            const aspectRatio = originalWidth / originalHeight;
+
+            // Target aspect ratio 4:3
+            const targetAspectRatio = 4 / 3;
+            let targetWidth, targetHeight;
+
+            if (aspectRatio > targetAspectRatio) {
+                // Image is wider than 4:3, set width to original and adjust height
+                targetWidth = originalWidth;
+                targetHeight = originalWidth * (3 / 4);
+            } else {
+                // Image is taller than or equal to 4:3, set height to original and adjust width
+                targetHeight = originalHeight;
+                targetWidth = originalHeight * (4 / 3);
+            }
+
+            // Create a canvas with 4:3 aspect ratio
+            const canvas = document.createElement('canvas');
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+            const ctx = canvas.getContext('2d');
+
+            // Disable anti-aliasing to prevent blurring
+            ctx.imageSmoothingEnabled = false;
+
+            // Fill the canvas with black background
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, targetWidth, targetHeight);
+
+            // Calculate the correct offset to center the image
+            const xOffset = Math.max(0, (targetWidth - originalWidth) / 2);
+            const yOffset = Math.max(0, (targetHeight - originalHeight) / 2);
+
+            // Draw the image centered without scaling or shifting
+            ctx.drawImage(img, xOffset, yOffset, originalWidth, originalHeight);
+
+            // Add the canvas to the page
+            canvasContainer.appendChild(canvas);
+
+            // Set up the download link and keep the original format
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                downloadLink.href = url;
+                downloadLink.download = `processed-image.${imageFormat}`;
+                downloadLink.style.display = 'inline';
+            }, `image/${imageFormat}`);
+        };
+
+        img.onerror = function() {
+            alert('Failed to load image. Please check the URL and try again.');
+        };
+    }
+</script>
+
+</body>
+</html>
