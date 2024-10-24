@@ -101,12 +101,12 @@
             ctx.fillStyle = 'black';
             ctx.fillRect(0, 0, targetWidth, targetHeight);
 
-            // Calculate the correct offset to center the image
-            const xOffset = Math.max(0, (targetWidth - originalWidth) / 2);
-            const yOffset = Math.max(0, (targetHeight - originalHeight) / 2);
+            // Calculate padding without shifting the image
+            const xOffset = (targetWidth - originalWidth) / 2;
+            const yOffset = (targetHeight - originalHeight) / 2;
 
-            // Draw the image centered without scaling or shifting
-            ctx.drawImage(img, xOffset, yOffset, originalWidth, originalHeight);
+            // Draw the image in its original position (centered with padding)
+            ctx.drawImage(img, xOffset, yOffset);
 
             // Add the canvas to the page
             canvasContainer.appendChild(canvas);
